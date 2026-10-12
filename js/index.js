@@ -122,6 +122,10 @@ async function initApp() {
   };
   buildChart(currentChartData, "Population growth in whole country", 'line', 450, ['#eb5146']);
 
+  // reset the municipality details that was saved before
+  localStorage.setItem("municipalityCode", municipalityCode);
+  localStorage.setItem("municipalityName", municipalityName);
+
   submitButton.addEventListener("click", async (event) => {
     event.preventDefault();
     div.innerHTML = "";
@@ -151,7 +155,7 @@ async function initApp() {
         { values: data.value }
       ]
     };
-
+    
     const formattedMunicipality = municipalityName[0].toUpperCase() + municipalityName.slice(1);
     buildChart(currentChartData, "Population growth in " + formattedMunicipality, 'line', 450, ['#eb5146']);
 
@@ -202,5 +206,5 @@ async function initApp() {
 document.addEventListener("DOMContentLoaded", initApp);
 
 document.getElementById("navigation").addEventListener("click", () => {
-  window.location.href = "index.html"; 
+  window.location.href = "newchart.html"; 
 });
