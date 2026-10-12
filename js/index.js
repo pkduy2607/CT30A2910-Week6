@@ -93,108 +93,110 @@ const fetchMunicipalityCode = async () => {
     }
 };
 
+function buildChart(chartData, chartTitle, chartType, chartHeight, chartColors) {
+  const chart = new frappe.Chart("#chart", { 
+    title: chartTitle,
+    data: chartData,
+    type: chartType,
+    height: chartHeight,
+    colors: chartColors
+  });
+}
+
 async function initApp() {
-    const municipalities = await fetchMunicipalityCode();
-    const form = document.querySelector("form");
-    const submitButton = document.getElementById("submit-data");
-    const div = document.querySelector("#chart");
-    let currentChartData = null;
-    let municipalityName = null;
+  const municipalities = await fetchMunicipalityCode();
+  const form = document.querySelector("form");
+  const submitButton = document.getElementById("submit-data");
+  const div = document.querySelector("#chart");
+  let currentChartData = null;
+  let municipalityName = "whole country";
+  let municipalityCode = "SSS";
 
-    submitButton.addEventListener("click", async (event) => {
-        event.preventDefault();
-        div.innerHTML = "";
-        
-        // get the municipality code from the name that user entered
-        const formData = new FormData(form);
-        municipalityName = formData.get("municipality").toLowerCase();
-
-        let municipalityCode = null;
-        for (let i = 0; i < municipalities.length; i++) {
-            if (municipalities[i].name == municipalityName) {
-                municipalityCode = municipalities[i].code;
-                break;
-            }
-        }
-        // change the municipality code in the json_query
-        if (municipalityCode == null) {
-            alert("Invalid municipality. Enter again!");
-            return;
-        } else {
-            json_query.query[1].selection.values[0] = municipalityCode;
-        }
-
-        const data = await fetchData();
-        currentChartData = {
-            labels: Object.values(data.dimension["timeperiod_y"].category.label),
-            datasets: [
-                { values: data.value }
-            ]
-        };
-
-        const formattedMunicipality = municipalityName[0].toUpperCase() + municipalityName.slice(1);
-        const chart = new frappe.Chart("#chart", { 
-            title: "Population growth in " + formattedMunicipality,
-            data: currentChartData,
-            type: 'line',
-            height: 450,
-            colors: ['#eb5146']
-        });
-
-        // save the municipality details to use in new-chart.js
-        localStorage.setItem("municipalityCode", municipalityCode);
-        localStorage.setItem("municipalityName", formattedMunicipality);
-    });
-
-    const addDataButton = document.getElementById("add-data");
-
-    addDataButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        div.innerHTML = "";
-        
-        // check if the chart data is empty
-        if (Object.keys(currentChartData).length == 0) {
-            alert("Please enter the municipality name first!");
-            return;
-        }
-        
-        // add the new estimated value
-        let newValue = 0;
-        const currentValueObject = Object.values(currentChartData.datasets);
-        const currentValue = Object.values(currentValueObject[0])[0];
-        for (let i = 1; i < currentValue.length; i++) {          
-            newValue += currentValue[i] - currentValue[i - 1];
-        }
-        newValue /= (currentValue.length - 1);
-        newValue += currentValue.at(-1);
-        currentValue.push(Math.round(newValue));
-        
-        const currentYear = Object.values(currentChartData.labels);
-        const newYear = parseInt(currentYear.at(-1), 10) + 1;
-        currentYear.push(newYear);
-
-        currentChartData = {
-            labels: currentYear,
-            datasets: [
-                { values: currentValue }
-            ]
-        };
-        
-        const formattedMunicipality = municipalityName[0].toUpperCase() + municipalityName.slice(1);
-        const chart = new frappe.Chart("#chart", { 
-            title: "Population growth in" + formattedMunicipality,
-            data: currentChartData,
-            type: 'line',
-            height: 450,
-            colors: ['#eb5146']
-        });
-    });
-}
-
-async function firstRequest() {
+  // build the first chart
   const populationData = await fetchData();
-  console.log(populationData);
+  currentChartData = {
+    labels: Object.values(populationData.dimension["timeperiod_y"].category.label),
+    datasets: [
+      { values: populationData.value }
+    ]
+  };
+  buildChart(currentChartData, "Population growth in whole country", 'line', 450, ['#eb5146']);
+
+  submitButton.addEventListener("click", async (event) => {
+    event.preventDefault();
+    div.innerHTML = "";
+        
+    // get the municipality code from the name that user entered
+    const formData = new FormData(form);
+    municipalityName = formData.get("municipality").toLowerCase();
+
+    for (let i = 0; i < municipalities.length; i++) {
+      if (municipalities[i].name == municipalityName) {
+        municipalityCode = municipalities[i].code;
+        break;
+      }
+    }
+    // change the municipality code in the json_query
+    if (municipalityCode == null) {
+      alert("Invalid municipality. Enter again!");
+      return;
+    } else {
+      json_query.query[1].selection.values[0] = municipalityCode;
+    }
+
+    const data = await fetchData();
+    currentChartData = {
+      labels: Object.values(data.dimension["timeperiod_y"].category.label),
+      datasets: [
+        { values: data.value }
+      ]
+    };
+
+    const formattedMunicipality = municipalityName[0].toUpperCase() + municipalityName.slice(1);
+    buildChart(currentChartData, "Population growth in " + formattedMunicipality, 'line', 450, ['#eb5146']);
+
+    // save the municipality details to use in new-chart.js
+    localStorage.setItem("municipalityCode", municipalityCode);
+    localStorage.setItem("municipalityName", formattedMunicipality);
+  });
+
+  const addDataButton = document.getElementById("add-data");
+
+  addDataButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    div.innerHTML = "";
+        
+    // check if the chart data is empty
+    if (Object.keys(currentChartData).length == 0) {
+      alert("Please enter the municipality name first!");
+      return;
+    }
+        
+    // add the new estimated value
+    let newValue = 0;
+    const currentValueObject = Object.values(currentChartData.datasets);
+    const currentValue = Object.values(currentValueObject[0])[0];
+    for (let i = 1; i < currentValue.length; i++) {          
+      newValue += currentValue[i] - currentValue[i - 1];
+    }
+    newValue /= (currentValue.length - 1);
+    newValue += currentValue.at(-1);
+    currentValue.push(Math.round(newValue));
+        
+    const currentYear = Object.values(currentChartData.labels);
+    const newYear = parseInt(currentYear.at(-1), 10) + 1;
+    currentYear.push(newYear);
+
+    currentChartData = {
+      labels: currentYear,
+      datasets: [
+        { values: currentValue }
+      ]
+    };
+        
+    const formattedMunicipality = municipalityName[0].toUpperCase() + municipalityName.slice(1);
+    buildChart(currentChartData, "Population growth in " + formattedMunicipality, 'line', 450, ['#eb5146']);
+  });
 }
 
-document.addEventListener("DOMContentLoaded", firstRequest);
 document.addEventListener("DOMContentLoaded", initApp);
