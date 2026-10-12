@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home page</title>
+    <script src="https://unpkg.com/frappe-charts@1.6.1/dist/frappe-charts.min.umd.js"></script>
+    <script type="module" src="js/index.js" defer></script>
+</head>
+<body>
+    <nav>
+        <form>
+            <input type="text" name="municipality" id="input-area" placeholder="Enter municipality">
+            <button id="submit-data">Submit</button>
+        </form>
+    </nav>
+    <div id="chart"></div>
+    <button id="add-data">View estimate data</button>
+    <a href="new-chart.html"><button id="navigation">View birth and death charts</button></a>
+</body>
+</html>
