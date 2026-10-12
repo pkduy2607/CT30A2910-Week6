@@ -200,3 +200,7 @@ async function initApp() {
 }
 
 document.addEventListener("DOMContentLoaded", initApp);
+
+document.getElementById("navigation").addEventListener("click", () => {
+  window.location.href = "index.html"; 
+});

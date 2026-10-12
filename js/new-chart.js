@@ -107,3 +107,7 @@ async function buildChart() {
 }
 
 document.addEventListener("DOMContentLoaded", buildChart());
+
+document.getElementById("navigation").addEventListener("click", () => {
+  window.location.href = "index.html"; 
+});
