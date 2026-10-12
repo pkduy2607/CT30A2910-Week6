@@ -191,4 +191,10 @@ async function initApp() {
     });
 }
 
+async function firstRequest() {
+  const populationData = await fetchData();
+  console.log(populationData);
+}
+
+document.addEventListener("DOMContentLoaded", firstRequest);
 document.addEventListener("DOMContentLoaded", initApp);
